@@ -23,9 +23,14 @@ from pathlib import Path
 import ast
 from typing import List
 import logging
+import platform
+import shlex
 
 import optuna
 from optuna.distributions import IntUniformDistribution, DiscreteUniformDistribution
+
+
+os_name = platform.system()  # Linux, Windows or ''
 
 
 logging.basicConfig(
@@ -64,10 +69,10 @@ class Objective(object):
                  opening_format, old_trial_num, pgnout, nodes,
                  base_time_sec=5, inc_time_sec=0.05, rounds=16,
                  concurrency=1, proto='uci', fix_base_param=False,
-                 match_manager='cutechess', good_result_cnt=0,
-                 depth=DEFAULT_SEARCH_DEPTH, games_per_trial=32,
-                 threshold_pruner={}, common_param=None,
-                 resign_movecount=None, resign_score=None):
+                 match_manager='cutechess', match_manager_path=None, 
+                 good_result_cnt=0, depth=DEFAULT_SEARCH_DEPTH, 
+                 games_per_trial=32, threshold_pruner={}, 
+                 common_param=None, resign_movecount=None, resign_score=None):
         self.input_param = copy.deepcopy(input_param)
         self.best_param = copy.deepcopy(best_param)
         self.best_value = best_value
@@ -104,6 +109,7 @@ class Objective(object):
         self.fix_base_param = fix_base_param
         self.good_result_cnt = good_result_cnt
         self.match_manager = match_manager
+        self.match_manager_path = match_manager_path
         self.depth = depth
         self.games_per_trial = games_per_trial
 
@@ -154,9 +160,9 @@ class Objective(object):
 
     def get_match_commands(self, test_options, base_options, games):
         if self.match_manager == 'cutechess':
-            tour_manager = Path(Path.cwd(), './tourney_manager/cutechess/cutechess-cli.exe')
+            tour_manager = Path(self.match_manager_path)
         else:
-            tour_manager = 'python -u ./tourney_manager/duel/duel.py'
+            tour_manager = self.match_manager_path
 
         command = f' -concurrency {self.concurrency}'
 
@@ -207,7 +213,10 @@ class Objective(object):
             test_options, base_options, games)
 
         # Execute the command line to start the match.
-        process = Popen(str(tour_manager) + command, stdout=PIPE, text=True)
+        if os_name.lower() == 'windows':
+            process = Popen(str(tour_manager) + command, stdout=PIPE, text=True)
+        else:
+            process = Popen(shlex.split(str(tour_manager) + command), stdout=PIPE, text=True)
         for eline in iter(process.stdout.readline, ''):
             line = eline.strip()
             if line.startswith(f'Score of {self.test_name} vs {self.base_name}'):
@@ -628,6 +637,14 @@ def main():
                         help='The application that handles the engine match,'
                              ' default=cutechess.',
                         default='cutechess')
+    parser.add_argument('--match-manager-path', required=True,
+                        help='Match manager path and/or filename. Example:\n'
+                             'cutechess:\n'
+                             '--match-manager-path c:/chess/tourney_manager/cutechess/cutechess-cli.exe\n'
+                             'duel.py for xboard engines:\n'
+                             '--match-manager-path python c:/chess/tourney_manager/duel/duel.py\n'
+                             'or\n'
+                              '--match-manager-path c:/python3/python c:/chess/tourney_manager/duel/duel.py')
     parser.add_argument('--protocol', required=False, type=str,
                         help='The protocol that the engine supports, can be'
                              ' uci or cecp, default=uci.',
