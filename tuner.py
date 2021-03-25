@@ -379,13 +379,13 @@ class Objective(object):
             # Otherwise use integer.
             else:
                 par_val = trial.suggest_int(k, v['min'], v['max'], v['step'])
-            test_options += f'option.{k}={par_val} '
+            test_options += f'option.\'{k}\'={par_val} '
             self.test_param.update({k: par_val})
 
         # Add common param. It should not be included in the test param.
         if self.common_param is not None:
             for k, v in self.common_param.items():
-                test_options += f'option.{k}={v} '
+                test_options += f'option.\'{k}\'={v} '
 
         test_options.rstrip()
 
@@ -393,19 +393,19 @@ class Objective(object):
         base_options = ''
         if self.fix_base_param:
             for k, v in self.init_param.items():
-                base_options += f'option.{k}={v} '
+                base_options += f'option.\'{k}\'={v} '
         else:
             if self.best_value > self.init_value:
                 for k, v in self.best_param.items():
-                    base_options += f'option.{k}={v} '
+                    base_options += f'option.\'{k}\'={v} '
             else:
                 for k, v in self.init_param.items():
-                    base_options += f'option.{k}={v} '
+                    base_options += f'option.\'{k}\'={v} '
 
         # Add common param. It should not be included in the test param.
         if self.common_param is not None:
             for k, v in self.common_param.items():
-                base_options += f'option.{k}={v} '
+                base_options += f'option.\'{k}\'={v} '
 
         base_options.rstrip()
 
@@ -469,7 +469,7 @@ class Objective(object):
         # Output for match manager.
         test_param = ''
         for k, v in self.test_param.items():
-            test_param += f'option.{k}={v} '
+            test_param += f'option.\'{k}\'={v} '
         logger.info(f'test param: {test_param}')
 
         # If base engine always uses the initial param or default param.
@@ -832,7 +832,7 @@ def main():
                                  args.base_time_sec, args.inc_time_sec,
                                  rounds, args.concurrency,
                                  args.protocol, fix_base_param,
-                                 args.match_manager, args.match_manager_path, 
+                                 args.match_manager, args.match_manager_path,
                                  good_result_cnt,
                                  args.depth, games_per_trial, th_pruner,
                                  common_param, args.resign_movecount,
@@ -857,7 +857,7 @@ def main():
         # Output for match manager.
         option_output = ''
         for k, v in study.best_params.items():
-            option_output += f'option.{k}={v} '
+            option_output += f'option.\'{k}\'={v} '
         logger.info(f'{option_output}\n')
 
 
