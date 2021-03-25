@@ -184,9 +184,9 @@ class Objective(object):
             command += f' -rounds {games//2} -games 2 -repeat 2'
 
             if self.nodes is None:
-                command += f' -each tc=0/0:{self.base_time_sec}+{self.inc_time_sec} depth={self.depth}'
+                command += f' -each tc=0/0:{self.base_time_sec}+{self.inc_time_sec} depth={self.depth} restart=on'
             else:
-                command += f' -each tc=inf nodes={self.nodes}'
+                command += f' -each tc=inf nodes={self.nodes} restart=on'
         else:
             command += f' -rounds {games//2} -repeat 2'
             command += f' -each tc=0/0:{self.base_time_sec}+{self.inc_time_sec}'
