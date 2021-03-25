@@ -193,7 +193,7 @@ class Objective(object):
 
         if self.match_manager == 'cutechess':
             command += f' -openings file={self.opening_file} order=random format={self.opening_format}'
-            command += ' -draw movenumber=30 movecount=6 score=5'
+            #command += ' -draw movenumber=30 movecount=6 score=5'
         else:
             command += f' -openings file={self.opening_file}'
 
